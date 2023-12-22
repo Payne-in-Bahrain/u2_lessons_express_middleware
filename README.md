@@ -686,7 +686,7 @@ function update(id, updatedTodo) {
 }
 ```
 
-Awesome!  Now, your users can update the details of a To-Do directly from the application.
+Awesome!!!  Now, your users can update the details of a To-Do directly from the application.
 
 ## 8. Further Study
 
