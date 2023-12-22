@@ -104,9 +104,9 @@ Open **server.js** and add this "do nothing" middleware:
 app.set('view engine', 'ejs');
 	
 // add middleware below the above line of code
-app.use(function(req, res, next) {
-  console.log('Hello SEI!');
-  next();  // Pass the request to the next middleware
+app.use((req, res, next)=>{
+  console.log('Hello from the middleware!');
+  next();
 });
 ```
 
@@ -115,8 +115,8 @@ Type `nodemon` to start the server, browse to `localhost:3000`, and check termin
 Let's add a line of code that modifies the `req` object by adding the current time to Express's request object that then can be accessed by any subsequent middleware: 
 
 ```js
-app.use(function(req, res, next) {
-  console.log('Hello SEI!');
+app.use((req, res, next) => {
+  console.log('Hello from the middleware!');
   // Add a time property to the res.locals object
   // The time property will then be accessible when rendering a view
   res.locals.time = new Date().toLocaleTimeString();
@@ -268,15 +268,15 @@ We need to code the `todosCtrl.new` action we just mapped to the `new` route...
 In **controllers/todos.js**:
 
 ```js
-module.exports = {
-  index,
-  show,
-  new: newTodo
+const newTodo = (req, res) => {
+    res.render('todos/new', {title: 'New Todo'});
 };
-	
-function newTodo(req, res) {
-  res.render('todos/new', { title: 'New Todo' });
-}
+
+module.exports = {
+    index, 
+    show,
+    new: newTodo
+};
 ```
 
 > Note that you cannot name a function using a JS [reserved word](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Lexical_grammar#reserved_words), however, there's no problem with object properties. 
@@ -288,11 +288,19 @@ We already called `res.render()`, we just need to write the **new.ejs** template
 Create **views/todos/new.ejs**, then copy this good stuff:
 
 ```html
-<body>
-<form action="/todos" method="POST" autocomplete="off">
-  <input type="text" name="todo">
-  <button type="submit">Save Todo</button>
-</form>
+<!DOCTYPE html>
+<html>
+    <head>
+        <title><%= title %></title>
+        <link rel='stylesheet' href='/stylesheets/style.css' />
+    </head>
+    <body>
+        <form action="/todos" method="POST" autocomplete="off">
+          <input type="text" name="todo">
+          <button type="submit">Save Todo</button>
+        </form>
+        </body>
+  <html>
 </body>
 ```
 
@@ -359,17 +367,18 @@ Yay - our first non-`GET` route!
 In **controllers/todos.js**:
 
 ```js
-  ...
-  create
+const create = (req, res) => {
+    console.log(req.body);
+    Todo.create(req.body); 
+    res.redirect('/todos');
 };
-	
-function create(req, res) {
-  console.log(req.body);
-  // The model is responsible for creating data
-  // Todo.create(req.body);
-  // Do a redirect anytime data is changed
-  res.redirect('/todos');
-}
+
+module.exports = {
+    index, 
+    show,
+    new: newTodo,
+    create
+};
 ```
 
 Check out what properties on the `req.body` object get logged out.
@@ -393,19 +402,17 @@ We need is that `create` in **models/todo.js**:
 ```js
 // models/todo.js
 
-module.exports = {
-  getAll,
-  getOne,
-  create
+const create = (todo) => {
+    todo.id = Date.now() % 1000000;
+    todo.done = false;
+    todos.push(todo);
 };
-	
-function create(todo) {
-  // Add the id
-  todo.id = Date.now() % 1000000;
-  // New todos wouldn't be done :)
-  todo.done = false;
-  todos.push(todo);
-}
+
+  module.exports = {
+    getAll,
+    getOne, 
+    create 
+};
 ```
 
 > Note that whenever `nodemon` restarts the server, additional To-Dos will be lost because we are not using a database to save them - yet!
