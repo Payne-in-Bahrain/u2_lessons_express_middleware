@@ -494,9 +494,9 @@ By default, `method-override` only listens for `POST` requests, therefore we use
 Therefore, we'll use a `<form>` for the UI in **views/todos/index.ejs**:
 
 ```html
-<% todos.forEach(function(t) { %>
+<% todos.forEach( todo => { %>
   <li>
-    <form action="/todos/<%= t.id %>?_method=DELETE"
+    <form action="/todos/<%= todo.id %>?_method=DELETE"
       class="delete-form" method="POST">
       <button type="submit">X</button>
     </form>
@@ -540,14 +540,18 @@ router.delete('/:id', todosCtrl.delete);
 Similar to `newTodo`, we can't name a function `delete`, so...
 
 ```js
-  create,
-  delete: deleteTodo
+const deleteTodo = (req, res) => {
+    Todo.deleteOne(req.params.id);
+    res.redirect('/todos');
 };
-	
-function deleteTodo(req, res) {
-  Todo.deleteOne(req.params.id);
-  res.redirect('/todos');
-}
+
+module.exports = {
+    index, 
+    show,
+    new: newTodo,
+    create,
+    delete: deleteTodo
+  };
 ```
 
 Again, according to the MVC architectural pattern, it's the Todo model's responsibility to perform the delete.
@@ -557,20 +561,17 @@ Again, according to the MVC architectural pattern, it's the Todo model's respons
 All that's left is to add the `deleteOne` method to the `Todo` model:
 
 ```js
-module.exports = {
-  getAll,
-  getOne,
-  create,
-  deleteOne
+const deleteOne = (id) => {  
+    const idx = todos.findIndex(todo => todo.id === parseInt(id));
+    todos.splice(idx, 1);
 };
-	
-function deleteOne(id) {
-  // All properties attached to req.params are strings!
-  id = parseInt(id);
-  // Find the index based on the id of the todo object
-  const idx = todos.findIndex(todo => todo.id === id);
-  todos.splice(idx, 1);
-}
+
+module.exports = {
+    getAll,
+    getOne, 
+    create, 
+    deleteOne
+};
 ```
 > Using the Array.prototype.filter method is another option for removing the todo.
 
