@@ -608,9 +608,9 @@ Checking the [Resourceful Routing for CRUD Operations in Web Applications Chart]
 Add an edit link in views/todos/index.ejs:
 
 ```
-<% todos.forEach(function(t) { %>
+<% todos.forEach( todo => { %>
   <li>
-    <a href="/todos/<%= t.id %>/edit">Edit</a>
+    <a href="/todos/<%= todo.id %>/edit">Edit</a>
     ...
 ```
 #### Step 3 - Define the route on the server
@@ -623,15 +623,21 @@ router.get('/:id/edit', todosCtrl.edit);
 In **controllers/todos.js**:
 
 ```
-module.exports = {
-  ...
-  edit: editTodo
+const editTodo = (req, res) => {
+    const todo = Todo.getOne(req.params.id);
+    res.render('todos/edit', {
+        todo
+    });
 };
-	
-function editTodo(req, res) {
-  const todo = Todo.getOne(req.params.id);
-  res.render('todos/edit', { title: 'Edit Todo', todo });
-}
+
+module.exports = {
+    index, 
+    show,
+    new: newTodo,
+    create,
+    delete: deleteTodo,
+    edit: editTodo
+  };
 ```
 
 #### Step 5 - Render the view & write it if necessary
@@ -659,31 +665,40 @@ router.put('/:id', todosCtrl.update);
 In **controllers/todods.js**:
 
 ```
-module.exports = {
-  ...
-  update: updateTodo
+const update = (req, res) => {
+    todoId = req.params.id;
+    updatedTodo = req.body;
+    Todo.updateOne(todoId, updatedTodo);
+    res.redirect('/todos');
 };
-	
-function updateTodo(req, res) {
-  Todo.update(req.params.id, req.body.todo);
-  res.redirect('/todos');
-}
+
+module.exports = {
+    index, 
+    show,
+    new: newTodo,
+    create,
+    delete: deleteTodo,
+    edit: editTodo, 
+    update
+  };
 ```
 
 #### Step 8 - Code and export the controller action for updating
 In **models/todod.js**:
 
 ```
-module.exports = {
-  ...
-  update
-};
-	
-function update(id, updatedTodo) {
-  id = parseInt(id);
-  const todoToUpdate = todos.find(todo => todo.id === id);
-  todoToUpdate.todo = updatedTodo;
+const updateOne = (id, updatedTodo) => {
+    const todoToUpdate = todos.find(todo => todo.id === parseInt(id));
+    todoToUpdate.todo = updatedTodo; 
 }
+
+module.exports = {
+    getAll,
+    getOne, 
+    create, 
+    deleteOne,
+    updateOne
+};
 ```
 
 Awesome!!!  Now, your users can update the details of a To-Do directly from the application.
