@@ -667,7 +667,7 @@ In **controllers/todods.js**:
 ```
 const update = (req, res) => {
     todoId = req.params.id;
-    updatedTodo = req.body;
+    updatedTodo = req.body.todo;
     Todo.updateOne(todoId, updatedTodo);
     res.redirect('/todos');
 };
